@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:yaml/yaml.dart';
+import 'package:yaml_writer/yaml_writer.dart';
 
 void main(List<String> args) async {
   // var options = parseOptions(args);
@@ -11,6 +12,7 @@ void main(List<String> args) async {
   final doc = loadYaml(yamlContent);
 
   final packageName = doc['name'];
+  final functionDeps = _toYaml(doc['dependencies'] ?? {});
   final pocketFunctionConfig = doc['pocket_functions'] ?? {};
 
   print("Pocket Functions Deploy for $packageName\n");
@@ -19,18 +21,26 @@ void main(List<String> args) async {
   if (functionFile != null) {
     var functionPath =
         pocketFunctionConfig["path"] ?? "/${packageName.replaceAll("_", "-")}";
-    await _createFunction(functionFile, functionPath);
+    await _createFunction(functionFile, functionPath, jsonEncode(functionDeps));
   } else {
     print("Stopping. No function defined in lib/");
   }
 }
 
-Future<void> _createFunction(File functionFile, String functionName) async {
+String _toYaml(Map map) {
+  var yamlWriter = YamlWriter();
+
+  return yamlWriter.write(map);
+}
+
+Future<void> _createFunction(
+    File functionFile, String functionName, String functionDeps) async {
   print("Starting deploy to $functionName ...\n");
 
   var payload = _createPayload(
     path: functionName,
     code: _getFunctionContent(functionFile),
+    deps: functionDeps,
   );
 
   final response = await http.post(
@@ -47,11 +57,15 @@ Future<void> _createFunction(File functionFile, String functionName) async {
   }
 }
 
-Map<String, String> _createPayload(
-    {required String path, required String code}) {
+Map<String, String> _createPayload({
+  required String path,
+  required String code,
+  required String deps,
+}) {
   return {
     "path": path,
     "code": _escapeCode(code),
+    "deps": deps,
   };
 }
 

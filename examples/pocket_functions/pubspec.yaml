@@ -9,6 +9,7 @@ environment:
 # Add regular dependencies here.
 dependencies:
   args: ^2.5.0
+  yaml_writer: ^2.0.0
   http: ^1.2.2
   build_cli_annotations: ^2.1.0
 
