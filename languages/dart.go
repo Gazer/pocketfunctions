@@ -2,6 +2,7 @@
 package languages
 
 import (
+	"bufio"
 	"bytes"
 	"errors"
 	"fmt"
@@ -13,19 +14,65 @@ import (
 
 var template = `%s`
 
-func checkExecutorDirectory(dir string) {
+func checkExecutorDirectory(dir string, f *models.PocketFunction) {
 	if _, err := os.Stat(dir); errors.Is(err, os.ErrNotExist) {
 		fmt.Printf("Directory do not exist for %s ... creating one\n", dir)
 		cmd := exec.Command("cp", "-a", "executor", dir)
 		cmd.Run()
+
+		writeDependencies(f)
+
+		cmd1 := exec.Command("dart", "pub", "get")
+		cmd1.Dir = dir
+		cmd1.Run()
 	}
+}
+
+func writeDependencies(f *models.PocketFunction) {
+	yamlFile := fmt.Sprintf("./executors/%s/pubspec.yaml", f.Id)
+
+	inFile, err := os.Open(yamlFile)
+	if err != nil {
+		fmt.Println(err.Error() + `: ` + yamlFile)
+		return
+	}
+
+	var lines []string
+
+	scanner := bufio.NewScanner(inFile)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+	inFile.Close()
+
+	outFile, err := os.Create(yamlFile)
+	if err != nil {
+		fmt.Println(err.Error() + `: ` + yamlFile)
+		return
+	}
+
+	for _, line := range lines {
+		outFile.WriteString(line)
+		outFile.WriteString("\n")
+		if line == "dependencies:" {
+			var lines = strings.Split(f.Deps, "\n")
+			for _, dep := range lines {
+				outFile.WriteString("  ")
+				outFile.WriteString(dep)
+				outFile.WriteString("\n")
+			}
+			outFile.WriteString("\n")
+		}
+	}
+
+	outFile.Close()
 }
 
 func DeployDart(f *models.PocketFunction) {
 	directory := fmt.Sprintf("./executors/%s", f.Id)
 	testFile := fmt.Sprintf("./executors/%s/lib/file.dart", f.Id)
 
-	checkExecutorDirectory(directory)
+	checkExecutorDirectory(directory, f)
 
 	executableCode := fmt.Sprintf(template, f.Code)
 	if err := os.WriteFile(testFile, []byte(executableCode), 0666); err != nil {

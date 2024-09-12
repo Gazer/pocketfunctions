@@ -111,7 +111,7 @@ packages:
     source: hosted
     version: "2.1.2"
   http:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: http
       sha256: b9c29a161230ee03d3ccf545097fccd9b87a5264228c5d348202e0f0c28f9010
@@ -437,5 +437,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.2"
+  yaml_writer:
+    dependency: transitive
+    description:
+      name: yaml_writer
+      sha256: f182931a598f9a3fd29ff528f0caab98fffa713583e30c12c7a27ce0b66c1308
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
 sdks:
   dart: ">=3.5.0 <4.0.0"

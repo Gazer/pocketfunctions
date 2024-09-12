@@ -8,9 +8,8 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
-  http: ^1.2.2
   pocket_functions:
-    path: /Users/gazer/dev/pocketfunctions
+    path: /Users/gazer/dev/pocketfunctions/examples/pocket_functions
 
 dev_dependencies:
   lints: ^4.0.0

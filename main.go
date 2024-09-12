@@ -27,6 +27,10 @@ func main() {
 
 		fmt.Printf("New function registered %s id=%s\n", newFunction.Uri, newFunction.Id)
 		functions[newFunction.Uri] = newFunction
+
+		fmt.Print("Deploying ... \n")
+		l.DeployDart(newFunction)
+
 		c.String(http.StatusOK, "Ok")
 	})
 	router.NoRoute(func(c *gin.Context) {
@@ -49,20 +53,6 @@ func main() {
 				c.Header(key, value)
 			}
 			c.String(http.StatusOK, response)
-
-			// if value, exists := headers["content-type"]; exists && value == "application/json" {
-			// 	var jsonData map[string]interface{}
-			// 	err := json.Unmarshal([]byte(response), &jsonData)
-			// 	if err != nil {
-			// 		c.JSON(http.StatusInternalServerError, gin.H{
-			// 			"error": "Invalid response JSON",
-			// 		})
-			// 		return
-			// 	}
-			// 	c.String(http.StatusOK, response)
-			// } else {
-			// 	c.String(http.StatusOK, response)
-			// }
 		}
 	})
 	router.Run("localhost:8080")

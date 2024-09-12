@@ -12,16 +12,18 @@ void main(List<String> args) async {
   final doc = loadYaml(yamlContent);
 
   final packageName = doc['name'];
-  final functionDeps = _toYaml(doc['dependencies'] ?? {});
+  Map functionDeps = Map.of(doc['dependencies'] ?? {});
   final pocketFunctionConfig = doc['pocket_functions'] ?? {};
 
   print("Pocket Functions Deploy for $packageName\n");
 
   var functionFile = _getFunctionFile();
   if (functionFile != null) {
+    functionDeps.remove("pocket_functions");
     var functionPath =
         pocketFunctionConfig["path"] ?? "/${packageName.replaceAll("_", "-")}";
-    await _createFunction(functionFile, functionPath, jsonEncode(functionDeps));
+    await _createFunction(
+        functionFile, functionPath, _escapeCode(_toYaml(functionDeps)));
   } else {
     print("Stopping. No function defined in lib/");
   }

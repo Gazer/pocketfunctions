@@ -3,6 +3,7 @@ package models
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"fmt"
 
 	"github.com/gin-gonic/gin"
 )
@@ -20,6 +21,7 @@ func PocketFunctionFromRequest(c *gin.Context) *PocketFunction {
 		return nil
 	}
 	newFunction.Id = GetMD5Hash(newFunction.Uri)
+	fmt.Println(newFunction.Deps)
 	return &newFunction
 }
 
