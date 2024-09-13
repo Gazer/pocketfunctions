@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 
 	l "gin/languages"
@@ -33,21 +34,30 @@ func main() {
 
 		c.String(http.StatusOK, "Ok")
 	})
+
 	router.NoRoute(func(c *gin.Context) {
 		var path = c.Request.URL.Path
-		fmt.Println(path)
+
 		if function, exists := functions[path]; exists {
-			var response, headers, error = l.RunDart(function)
+			env := make(map[string]string)
+			env["pf_path"] = path
+			env["pf_query"] = c.Request.URL.RawQuery
+			env["pf_method"] = c.Request.Method
+			body, err := io.ReadAll(c.Request.Body)
+			if err == nil {
+				env["pf_body"] = string(body)
+			}
+			env["pf_content-type"] = c.GetHeader("Content-Type")
+
+			var response, headers, error = l.RunDart(function, env)
 			if error != nil {
-				fmt.Println("Execution failed")
+				fmt.Println(response)
+				fmt.Println(error)
 				c.JSON(http.StatusInternalServerError, gin.H{
 					"error": "Execution failed",
 				})
 				return
 			}
-
-			fmt.Println(headers)
-			fmt.Println(response)
 
 			for key, value := range headers {
 				c.Header(key, value)

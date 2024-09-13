@@ -84,12 +84,12 @@ func DeployDart(f *models.PocketFunction) {
 	cmd.Run()
 }
 
-func RunDart(f *models.PocketFunction) (string, map[string]string, error) {
+func RunDart(f *models.PocketFunction, env map[string]string) (string, map[string]string, error) {
 	directory := fmt.Sprintf("./executors/%s", f.Id)
 	aotFile := fmt.Sprintf("./executors/%s/bin/executor.aot", f.Id)
 
-	var headers map[string]string
-	headers = make(map[string]string)
+	var responseHeaders map[string]string
+	responseHeaders = make(map[string]string)
 	var builder strings.Builder
 
 	if _, err := os.Stat(aotFile); errors.Is(err, os.ErrNotExist) {
@@ -99,6 +99,9 @@ func RunDart(f *models.PocketFunction) (string, map[string]string, error) {
 	}
 
 	cmd := exec.Command("dartaotruntime", "bin/executor.aot")
+	for k, v := range env {
+		cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", k, v))
+	}
 	cmd.Dir = directory
 
 	var out bytes.Buffer
@@ -107,7 +110,7 @@ func RunDart(f *models.PocketFunction) (string, map[string]string, error) {
 	err := cmd.Run()
 
 	if err != nil {
-		return "", headers, errors.New("Command failed")
+		return out.String(), responseHeaders, errors.New("Command failed")
 	}
 
 	var lines = strings.Split(out.String(), "\n")
@@ -118,7 +121,7 @@ func RunDart(f *models.PocketFunction) (string, map[string]string, error) {
 		} else {
 			if readingHeaders {
 				var parts = strings.SplitN(line, "=", 2)
-				headers[parts[0]] = parts[1]
+				responseHeaders[parts[0]] = parts[1]
 			} else {
 				builder.WriteString(line)
 				builder.WriteString("\n")
@@ -126,5 +129,5 @@ func RunDart(f *models.PocketFunction) (string, map[string]string, error) {
 		}
 	}
 
-	return builder.String(), headers, nil
+	return builder.String(), responseHeaders, nil
 }
