@@ -11,11 +11,13 @@ dependencies:
   pocketbase: ^0.18.1
   pocket_functions:
     path: ../pocket_functions
-  # path: ^1.8.0
 
 dev_dependencies:
   lints: ^4.0.0
   test: ^1.24.0
+  pocket_functions:
+    path: ../pocket_functions
+  build_runner: ^2.3.3
 
 pocket_functions:
   path: /items

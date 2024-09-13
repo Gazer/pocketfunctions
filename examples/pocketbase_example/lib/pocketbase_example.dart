@@ -3,6 +3,7 @@ import 'package:pocketbase/pocketbase.dart';
 
 final pb = PocketBase('http://127.0.0.1:8090');
 
+@EntryPoint()
 Future<void> calculate(PocketRequest request) async {
   final result = await pb.collection("example").getList(
         page: int.tryParse(request.params['page']?[0] ?? "1") ?? 1,
