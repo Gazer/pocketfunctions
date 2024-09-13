@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'pocket_request.dart';
 
 class PocketRequest {
@@ -33,5 +34,21 @@ class PocketRequest {
       contentType: env['pf_content-type'] ?? "text/plain",
       params: uri.queryParametersAll,
     );
+  }
+
+  String? plainBody() {
+    return body;
+  }
+
+  Map<String, dynamic>? jsonBody() {
+    if (body == null) {
+      return null;
+    }
+
+    if (contentType != "application/json") {
+      return null;
+    } else {
+      return jsonDecode(body!);
+    }
   }
 }
