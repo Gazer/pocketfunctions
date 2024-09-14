@@ -1,0 +1,10 @@
+import 'dart:io';
+
+import 'package:pocket_functions/pocket_functions.dart';
+import 'package:pocketbase_example/%s.entrypoint.g.dart';
+
+main(List<String> arguments) async {
+  var request = PocketRequest.fromEnvironment(Platform.environment);
+  await pocketFunctionsEntryPoint(request);
+  print(request.response);
+}

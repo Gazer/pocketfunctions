@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:path/path.dart' as p;
 
 import 'package:http/http.dart' as http;
+import 'package:pocket_functions/zipper.dart';
 import 'package:yaml/yaml.dart';
 import 'package:yaml_writer/yaml_writer.dart';
 
@@ -12,50 +14,45 @@ void main(List<String> args) async {
   final doc = loadYaml(yamlContent);
 
   final packageName = doc['name'];
-  Map functionDeps = Map.of(doc['dependencies'] ?? {});
   final pocketFunctionConfig = doc['pocket_functions'] ?? {};
 
   print("Pocket Functions Deploy for $packageName\n");
+  var functionPath =
+      pocketFunctionConfig["path"] ?? "/${packageName.replaceAll("_", "-")}";
 
-  var functionFile = _getFunctionFile();
-  if (functionFile != null) {
-    functionDeps.remove("pocket_functions");
-    var functionPath =
-        pocketFunctionConfig["path"] ?? "/${packageName.replaceAll("_", "-")}";
-    await _createFunction(
-        functionFile, functionPath, _escapeCode(_toYaml(functionDeps)));
-  } else {
-    print("Stopping. No function defined in lib/");
-  }
-}
+  var zipFileName = "$packageName.zip";
+  await createPackageZip(".", zipFileName);
 
-String _toYaml(Map map) {
-  var yamlWriter = YamlWriter();
-
-  return yamlWriter.write(map);
+  await _createFunction(functionPath, zipFileName);
 }
 
 Future<void> _createFunction(
-    File functionFile, String functionName, String functionDeps) async {
+  String functionName,
+  String zipFilePath,
+) async {
   print("Starting deploy to $functionName ...\n");
 
-  var payload = _createPayload(
-    path: functionName,
-    code: _getFunctionContent(functionFile),
-    deps: functionDeps,
-  );
+  if (functionName[0] == "/") {
+    functionName = functionName.substring(1);
+  }
 
-  final response = await http.post(
-    Uri.parse("http://localhost:8080/_/create"),
-    headers: {"Content-Type": "application/json"},
-    body: jsonEncode(payload),
-  );
+  final uri = Uri.parse("http://localhost:8080/_/create/$functionName");
+  final request = http.MultipartRequest('POST', uri);
 
-  // Manejar la respuesta
+  final fileName = p.basename(zipFilePath);
+  request.files.add(await http.MultipartFile.fromPath(
+    'file',
+    zipFilePath,
+    filename: fileName,
+  ));
+
+  final response = await request.send();
+  final responseBody = await response.stream.bytesToString();
+
   if (response.statusCode == 200) {
     print("Deploy Succeed");
   } else {
-    print("Deploy Error: ${response.statusCode}, ${response.body}");
+    print("Deploy Error: ${response.statusCode}, $responseBody");
   }
 }
 

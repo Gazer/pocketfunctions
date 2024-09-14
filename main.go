@@ -17,7 +17,7 @@ func main() {
 	fmt.Print("Let's go\n")
 
 	router := gin.Default()
-	router.POST("/_/create", func(c *gin.Context) {
+	router.POST("/_/create/*path", func(c *gin.Context) {
 		// nil
 		newFunction := models.PocketFunctionFromRequest(c)
 		if newFunction == nil {

@@ -16,8 +16,8 @@ class EntryPointGenerator extends GeneratorForAnnotation<EntryPoint> {
       import 'package:pocket_functions/pocket_functions.dart';
       import '${element.librarySource.uri}';
 
-      void pocketFunctionsEntryPoint(PocketRequest request) {
-        $functionName(request);
+      Future<void> pocketFunctionsEntryPoint(PocketRequest request) async {
+        await $functionName(request);
       }
       ''';
     }
