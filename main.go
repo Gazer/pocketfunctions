@@ -22,7 +22,7 @@ func main() {
 		newFunction := models.PocketFunctionFromRequest(c)
 		if newFunction == nil {
 			fmt.Println("Bad request")
-			c.String(http.StatusBadRequest, "Invalid JSON")
+			c.String(http.StatusBadRequest, "Invalid Data")
 			return
 		}
 
@@ -47,7 +47,7 @@ func main() {
 			if err == nil {
 				env["pf_body"] = string(body)
 			}
-			env["pf_content-type"] = c.GetHeader("Content-Type")
+			env["pf_content_type"] = c.GetHeader("Content-Type")
 
 			var response, headers, error = l.RunDart(function, env)
 			if error != nil {

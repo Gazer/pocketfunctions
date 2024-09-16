@@ -1,6 +1,7 @@
 package models
 
 import (
+	"bufio"
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
@@ -16,6 +17,38 @@ type PocketFunction struct {
 	Uri  string `json:"path"`
 	Code string `json:"code"`
 	Id   string
+}
+
+func (f *PocketFunction) VendorPath() string {
+	return fmt.Sprintf("./executors/%s/vendor/%s", f.Id, f.Code)
+}
+
+func (f *PocketFunction) MakeVendorPath() {
+	os.Mkdir(fmt.Sprintf("./executors/%s/vendor", f.Id), 0755)
+}
+
+func (f *PocketFunction) PubspecPath() string {
+	return fmt.Sprintf("./executors/%s/pubspec.yaml", f.Id)
+}
+
+func (f *PocketFunction) BasePath() string {
+	return fmt.Sprintf("./executors/%s", f.Id)
+}
+
+func (f *PocketFunction) ReadPubspec() ([]string, error) {
+	inFile, err := os.Open(f.PubspecPath())
+	if err != nil {
+		return nil, err
+	}
+	defer inFile.Close()
+
+	var lines []string
+
+	scanner := bufio.NewScanner(inFile)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+	return lines, nil
 }
 
 func PocketFunctionFromRequest(c *gin.Context) *PocketFunction {

@@ -3,7 +3,6 @@ package languages
 
 import (
 	"archive/zip"
-	"bufio"
 	"bytes"
 	"errors"
 	"fmt"
@@ -17,17 +16,17 @@ import (
 
 var template = `%s`
 
-func checkExecutorDirectory(dir string, f *models.PocketFunction) {
-	if _, err := os.Stat(dir); errors.Is(err, os.ErrNotExist) {
-		fmt.Printf("Directory do not exist for %s ... creating one\n", dir)
-		cmd := exec.Command("cp", "-a", "executor", dir)
+func checkExecutorDirectory(f *models.PocketFunction) {
+	if _, err := os.Stat(f.BasePath()); errors.Is(err, os.ErrNotExist) {
+		fmt.Printf("Directory do not exist for %s ... creating one\n", f.BasePath())
+		cmd := exec.Command("cp", "-a", "executor", f.BasePath())
 		cmd.Run()
 
 		writeEntryPoint(f)
 		writeDependencies(f)
 
 		cmd1 := exec.Command("dart", "pub", "get")
-		cmd1.Dir = dir
+		cmd1.Dir = f.VendorPath()
 		cmd1.Run()
 	}
 }
@@ -46,27 +45,13 @@ func writeEntryPoint(f *models.PocketFunction) {
 }
 
 func writeDependencies(f *models.PocketFunction) {
-	os.Mkdir(fmt.Sprintf("./executors/%s/vendor", f.Id), 0755)
+	f.MakeVendorPath()
 
-	yamlFile := fmt.Sprintf("./executors/%s/pubspec.yaml", f.Id)
+	lines, _ := f.ReadPubspec()
 
-	inFile, err := os.Open(yamlFile)
+	outFile, err := os.Create(f.PubspecPath())
 	if err != nil {
-		fmt.Println(err.Error() + `: ` + yamlFile)
-		return
-	}
-
-	var lines []string
-
-	scanner := bufio.NewScanner(inFile)
-	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
-	}
-	inFile.Close()
-
-	outFile, err := os.Create(yamlFile)
-	if err != nil {
-		fmt.Println(err.Error() + `: ` + yamlFile)
+		fmt.Println(err.Error() + `: ` + f.PubspecPath())
 		return
 	}
 
@@ -84,27 +69,22 @@ func writeDependencies(f *models.PocketFunction) {
 }
 
 func Unzip(zipFilePath, destDir string) error {
-	// Abrir el archivo ZIP
 	zipReader, err := zip.OpenReader(zipFilePath)
 	if err != nil {
 		return fmt.Errorf("error al abrir el archivo ZIP: %w", err)
 	}
 	defer zipReader.Close()
 
-	// Iterar sobre los archivos en el archivo ZIP
 	for _, file := range zipReader.File {
-		// Construir la ruta completa para el archivo extraído
 		filePath := filepath.Join(destDir, file.Name)
 
 		if file.FileInfo().IsDir() {
-			// Crear directorio si es un directorio
 			if err := os.MkdirAll(filePath, file.Mode()); err != nil {
 				return fmt.Errorf("error al crear el directorio %s: %w", filePath, err)
 			}
 			continue
 		}
 
-		// Crear el archivo
 		if err := os.MkdirAll(filepath.Dir(filePath), 0755); err != nil {
 			return fmt.Errorf("error al crear el directorio del archivo %s: %w", filePath, err)
 		}
@@ -115,7 +95,6 @@ func Unzip(zipFilePath, destDir string) error {
 		}
 		defer destFile.Close()
 
-		// Copiar el contenido del archivo ZIP al archivo destino
 		srcFile, err := file.Open()
 		if err != nil {
 			return fmt.Errorf("error al abrir el archivo dentro del ZIP %s: %w", file.Name, err)
@@ -132,33 +111,30 @@ func Unzip(zipFilePath, destDir string) error {
 
 func unzipCode(f *models.PocketFunction) {
 	zipFilePath := fmt.Sprintf("function_repository/%s.zip", f.Code)
-	destDir := fmt.Sprintf("executors/%s/vendor/%s", f.Id, f.Code) // Reemplaza "yourVariable" con el valor real
 
-	if err := Unzip(zipFilePath, destDir); err != nil {
-		fmt.Println("Error descomprimiendo el archivo:", err)
+	if err := Unzip(zipFilePath, f.VendorPath()); err != nil {
+		fmt.Println("Unzil failed")
 	} else {
-		fmt.Println("Archivo descomprimido exitosamente en:", destDir)
+		fmt.Println("Unzil done")
 	}
 }
 
 func DeployDart(f *models.PocketFunction) {
-	directory := fmt.Sprintf("./executors/%s", f.Id)
-
-	checkExecutorDirectory(directory, f)
+	checkExecutorDirectory(f)
 	unzipCode(f)
 
-	vendorPath := fmt.Sprintf("executors/%s/vendor/%s", f.Id, f.Code)
+	vendorPath := f.VendorPath()
 
 	cmd := exec.Command("dart", "run", "build_runner", "build")
 	cmd.Dir = vendorPath
 	cmd.Run()
 
 	cmd = exec.Command("dart", "pub", "get")
-	cmd.Dir = directory
+	cmd.Dir = f.BasePath()
 	cmd.Run()
 
 	cmd = exec.Command("dart", "compile", "aot-snapshot", "bin/executor.dart")
-	cmd.Dir = directory
+	cmd.Dir = f.BasePath()
 	cmd.Run()
 }
 
@@ -183,12 +159,14 @@ func RunDart(f *models.PocketFunction, env map[string]string) (string, map[strin
 	cmd.Dir = directory
 
 	var out bytes.Buffer
+	var stdErr bytes.Buffer
 	cmd.Stdout = &out
+	cmd.Stderr = &stdErr
 
 	err := cmd.Run()
 
 	if err != nil {
-		return out.String(), responseHeaders, errors.New("Command failed")
+		return stdErr.String(), responseHeaders, errors.New("Command failed")
 	}
 
 	var lines = strings.Split(out.String(), "\n")

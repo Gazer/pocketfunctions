@@ -24,14 +24,14 @@ class PocketRequest {
     // env["pf_query"] = c.Request.URL.RawQuery
     // env["pf_method"] = c.Request.Method
     // 	env["pf_body"] = string(body)
-    // env["pf_content-type"] = c.GetHeader("Content-Type")
+    // env["pf_content_type"] = c.GetHeader("Content-Type")
     Uri uri = Uri(query: env["pf_query"]);
 
     return PocketRequest(
       path: env["pf_path"]!,
       httpMethod: env["pf_method"]!,
       body: env['pf_body'],
-      contentType: env['pf_content-type'] ?? "text/plain",
+      contentType: env['pf_content_type'] ?? "text/plain",
       params: uri.queryParametersAll,
     );
   }

@@ -5,18 +5,33 @@ final pb = PocketBase('http://127.0.0.1:8090');
 
 @EntryPoint()
 Future<void> calculate(PocketRequest request) async {
-  final result = await pb.collection("example").getList(
-        page: int.tryParse(request.params['page']?[0] ?? "1") ?? 1,
-        perPage: 20,
-        filter: 'status = true && created >= "2022-08-01"',
-        sort: '-created',
-      );
+  if (request.httpMethod == "GET") {
+    final result = await pb.collection("example").getList(
+          page: int.tryParse(request.params['page']?[0] ?? "1") ?? 1,
+          perPage: 20,
+          filter: 'status = true && created >= "2022-08-01"',
+          sort: '-created',
+        );
 
-  var response = request.response.addHeader("content-type", "application/json");
+    var response =
+        request.response.addHeader("content-type", "application/json");
 
-  var items = result.items.map((e) {
-    return e.toJson();
-  }).toList();
-  response.write(items);
-  response.close();
+    var items = result.items.map((e) {
+      return e.toJson();
+    }).toList();
+    response.write(items);
+    response.close();
+  } else if (request.httpMethod == "POST") {
+    var name = request.jsonBody()!["name"];
+    var status = request.jsonBody()!["status"];
+
+    final body = <String, dynamic>{"name": name, "status": status};
+
+    final record = await pb.collection('example').create(body: body);
+
+    var response =
+        request.response.addHeader("content-type", "application/json");
+    response.write([record.toJson()]);
+    response.close();
+  }
 }
