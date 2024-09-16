@@ -20,19 +20,19 @@ type PocketFunction struct {
 }
 
 func (f *PocketFunction) VendorPath() string {
-	return fmt.Sprintf("./executors/%s/vendor/%s", f.Id, f.Code)
+	return fmt.Sprintf("../dist/executors/%s/vendor", f.Id)
 }
 
-func (f *PocketFunction) MakeVendorPath() {
-	os.Mkdir(fmt.Sprintf("./executors/%s/vendor", f.Id), 0755)
+func (f *PocketFunction) CodePath() string {
+	return fmt.Sprintf("../dist/executors/%s/vendor/%s", f.Id, f.Code)
 }
 
 func (f *PocketFunction) PubspecPath() string {
-	return fmt.Sprintf("./executors/%s/pubspec.yaml", f.Id)
+	return fmt.Sprintf("../dist/executors/%s/pubspec.yaml", f.Id)
 }
 
 func (f *PocketFunction) BasePath() string {
-	return fmt.Sprintf("./executors/%s", f.Id)
+	return fmt.Sprintf("../dist/executors/%s", f.Id)
 }
 
 func (f *PocketFunction) ReadPubspec() ([]string, error) {
@@ -63,7 +63,7 @@ func PocketFunctionFromRequest(c *gin.Context) *PocketFunction {
 	newFunction.Code = strings.TrimRight(fileHeader.Filename, ".zip")
 
 	// Open or create the file to save the uploaded content
-	dst, err := os.Create(fmt.Sprintf("function_repository/%s.zip", newFunction.Code))
+	dst, err := os.Create(fmt.Sprintf("../dist/function_repository/%s.zip", newFunction.Code))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return nil

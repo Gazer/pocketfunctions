@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"io"
+	"log"
 	"net/http"
 
 	"github.com/Gazer/pocketfunctions/languages"
@@ -13,22 +13,22 @@ import (
 var functions = map[string]*models.PocketFunction{}
 
 func main() {
-	fmt.Print("Let's go\n")
+	log.Print("Let's go\n")
 
 	router := gin.Default()
 	router.POST("/_/create/*path", func(c *gin.Context) {
 		// nil
 		newFunction := models.PocketFunctionFromRequest(c)
 		if newFunction == nil {
-			fmt.Println("Bad request")
+			log.Println("Bad request")
 			c.String(http.StatusBadRequest, "Invalid Data")
 			return
 		}
 
-		fmt.Printf("New function registered %s id=%s\n", newFunction.Uri, newFunction.Id)
+		log.Printf("New function registered %s id=%s\n", newFunction.Uri, newFunction.Id)
 		functions[newFunction.Uri] = newFunction
 
-		fmt.Print("Deploying ... \n")
+		log.Print("Deploying ... \n")
 		languages.DeployDart(newFunction)
 
 		c.String(http.StatusOK, "Ok")
@@ -50,11 +50,7 @@ func main() {
 
 			var response, headers, error = languages.RunDart(function, env)
 			if error != nil {
-				fmt.Println(response)
-				fmt.Println(error)
-				c.JSON(http.StatusInternalServerError, gin.H{
-					"error": "Execution failed",
-				})
+				c.String(http.StatusInternalServerError, response)
 				return
 			}
 
