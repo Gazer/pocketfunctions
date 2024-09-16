@@ -6,12 +6,13 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"gin/models"
 	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/Gazer/pocketfunctions/models"
 )
 
 var template = `%s`

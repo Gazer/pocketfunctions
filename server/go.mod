@@ -1,4 +1,4 @@
-module gin
+module github.com/Gazer/pocketfunctions
 
 go 1.23.1
 

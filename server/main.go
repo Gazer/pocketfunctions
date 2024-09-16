@@ -5,9 +5,8 @@ import (
 	"io"
 	"net/http"
 
-	l "gin/languages"
-	"gin/models"
-
+	"github.com/Gazer/pocketfunctions/languages"
+	"github.com/Gazer/pocketfunctions/models"
 	"github.com/gin-gonic/gin"
 )
 
@@ -30,7 +29,7 @@ func main() {
 		functions[newFunction.Uri] = newFunction
 
 		fmt.Print("Deploying ... \n")
-		l.DeployDart(newFunction)
+		languages.DeployDart(newFunction)
 
 		c.String(http.StatusOK, "Ok")
 	})
@@ -49,7 +48,7 @@ func main() {
 			}
 			env["pf_content_type"] = c.GetHeader("Content-Type")
 
-			var response, headers, error = l.RunDart(function, env)
+			var response, headers, error = languages.RunDart(function, env)
 			if error != nil {
 				fmt.Println(response)
 				fmt.Println(error)
