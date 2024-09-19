@@ -4,7 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
+	"os"
 
 	"github.com/Gazer/pocketfunctions/languages"
 	"github.com/Gazer/pocketfunctions/models"
@@ -24,19 +26,11 @@ func Execute(db *sql.DB) func(c *gin.Context) {
 			return
 		}
 
-		env := make(map[string]string)
-		env["pf_path"] = path
-		env["pf_query"] = c.Request.URL.RawQuery
-		env["pf_method"] = c.Request.Method
-		body, err := io.ReadAll(c.Request.Body)
-		if err == nil {
-			env["pf_body"] = string(body)
-		}
-		env["pf_content_type"] = c.GetHeader("Content-Type")
+		filePath := createDataFile(c)
 
-		var response, headers, error = languages.RunDart(function, env)
+		var response, headers, error = languages.RunDart(function, filePath)
 		if error != nil {
-			c.String(http.StatusInternalServerError, response)
+			c.String(http.StatusInternalServerError, filePath)
 			return
 		}
 
@@ -45,4 +39,28 @@ func Execute(db *sql.DB) func(c *gin.Context) {
 		}
 		c.String(http.StatusOK, response)
 	}
+}
+
+func createDataFile(c *gin.Context) string {
+	f, err := os.CreateTemp("/tmp", "tmpfile-")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer f.Close()
+
+	// write data to the temporary file
+	f.Write([]byte(c.Request.URL.Path))
+	f.Write([]byte("\n"))
+	f.Write([]byte(c.Request.URL.RawQuery))
+	f.Write([]byte("\n"))
+	f.Write([]byte(c.Request.Method))
+	f.Write([]byte("\n"))
+	f.Write([]byte(c.GetHeader("Content-Type")))
+	f.Write([]byte("\n"))
+	body, err := io.ReadAll(c.Request.Body)
+	if err == nil {
+		f.Write([]byte(body))
+	}
+	return f.Name()
 }

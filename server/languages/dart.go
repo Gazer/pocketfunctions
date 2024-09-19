@@ -16,8 +16,6 @@ import (
 	"github.com/Gazer/pocketfunctions/models"
 )
 
-var template = `%s`
-
 func checkExecutorDirectory(f *models.PocketFunction) {
 	if _, err := os.Stat(f.BasePath()); errors.Is(err, os.ErrNotExist) {
 		log.Printf("Directory do not exist for %s ... creating one\n", f.BasePath())
@@ -39,9 +37,7 @@ func writeEntryPoint(f *models.PocketFunction) {
 		log.Println("Can't read template")
 		return
 	}
-	var template = string(bytes)
-
-	var executorDart = fmt.Sprintf(template, f.Code)
+	var executorDart = fmt.Sprintf(string(bytes), f.Code)
 
 	os.WriteFile(fmt.Sprintf("../dist/executors/%d/bin/executor.dart", f.Id), []byte(executorDart), 0666)
 }
@@ -70,10 +66,10 @@ func writeDependencies(f *models.PocketFunction) {
 	}
 }
 
-func Unzip(zipFilePath, destDir string) error {
+func unzip(zipFilePath, destDir string) error {
 	zipReader, err := zip.OpenReader(zipFilePath)
 	if err != nil {
-		return fmt.Errorf("error al abrir el archivo ZIP: %w", err)
+		return fmt.Errorf("Can't open the ZIP: %w", err)
 	}
 	defer zipReader.Close()
 
@@ -82,29 +78,29 @@ func Unzip(zipFilePath, destDir string) error {
 
 		if file.FileInfo().IsDir() {
 			if err := os.MkdirAll(filePath, file.Mode()); err != nil {
-				return fmt.Errorf("error al crear el directorio %s: %w", filePath, err)
+				return fmt.Errorf("Can not create directory %s: %w", filePath, err)
 			}
 			continue
 		}
 
 		if err := os.MkdirAll(filepath.Dir(filePath), 0755); err != nil {
-			return fmt.Errorf("error al crear el directorio del archivo %s: %w", filePath, err)
+			return fmt.Errorf("%s: %w", filePath, err)
 		}
 
 		destFile, err := os.Create(filePath)
 		if err != nil {
-			return fmt.Errorf("error al crear el archivo %s: %w", filePath, err)
+			return fmt.Errorf("Cant create file %s: %w", filePath, err)
 		}
 		defer destFile.Close()
 
 		srcFile, err := file.Open()
 		if err != nil {
-			return fmt.Errorf("error al abrir el archivo dentro del ZIP %s: %w", file.Name, err)
+			return fmt.Errorf("Cant read the ZIP %s: %w", file.Name, err)
 		}
 		defer srcFile.Close()
 
 		if _, err := io.Copy(destFile, srcFile); err != nil {
-			return fmt.Errorf("error al copiar el archivo %s: %w", filePath, err)
+			return fmt.Errorf("Cant copy file %s: %w", filePath, err)
 		}
 	}
 
@@ -114,7 +110,7 @@ func Unzip(zipFilePath, destDir string) error {
 func unzipCode(f *models.PocketFunction) {
 	zipFilePath := fmt.Sprintf("../dist/function_repository/%s.zip", f.Code)
 
-	if err := Unzip(zipFilePath, f.CodePath()); err != nil {
+	if err := unzip(zipFilePath, f.CodePath()); err != nil {
 		log.Println("Unzil failed")
 	} else {
 		log.Println("Unzil done")
@@ -138,7 +134,7 @@ func DeployDart(f *models.PocketFunction) {
 	cmd.Run()
 }
 
-func RunDart(f *models.PocketFunction, env map[string]string) (string, map[string]string, error) {
+func RunDart(f *models.PocketFunction, filePath string) (string, map[string]string, error) {
 	aotFile := fmt.Sprintf("../dist/executors/%d/bin/executor.aot", f.Id)
 
 	var responseHeaders map[string]string = make(map[string]string)
@@ -153,10 +149,7 @@ func RunDart(f *models.PocketFunction, env map[string]string) (string, map[strin
 	var stdOut bytes.Buffer
 	var stdErr bytes.Buffer
 
-	cmd := exec.Command("dartaotruntime", "bin/executor.aot")
-	for k, v := range env {
-		cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", k, v))
-	}
+	cmd := exec.Command("dartaotruntime", "bin/executor.aot", filePath)
 	cmd.Dir = f.BasePath()
 	cmd.Stdout = &stdOut
 	cmd.Stderr = &stdErr

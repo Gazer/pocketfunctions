@@ -1,44 +1,70 @@
-// Main library, extract later
 import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
 
-class PocketResponse {
-  final buffer = StringBuffer();
-  final headers = <String, String>{};
+import 'pocket_response.dart';
 
-  PocketResponse addHeader(String key, String value) {
-    headers[key] = value;
-    return this;
-  }
+class PocketRequest {
+  final String path;
+  final String httpMethod;
+  final Uint8List? body;
+  final String contentType;
+  final Map<String, List<String>> params;
 
-  PocketResponse write(Object s) {
-    if (_isJsonResponse()) {
-      buffer.write(jsonEncode(s));
-    } else {
-      buffer.write(s);
+  final response = PocketResponse();
+
+  PocketRequest({
+    required this.path,
+    required this.httpMethod,
+    required this.body,
+    required this.contentType,
+    required this.params,
+  });
+
+  factory PocketRequest.fromFile(String path) {
+    var file = File(path);
+    List<String> env  = [];
+
+    final lineBuffer = <int>[];
+    final readBody = false;
+
+    var bytes = file.readAsBytesSync();
+    for( var i=0; i< bytes.length; i++) {
+      var byte = bytes[i];
+      if (byte == 10 && !readBody) {
+        String line = utf8.decode(lineBuffer);
+        env.add(line);
+        lineBuffer.clear();
+      } else {
+        lineBuffer.add(byte);
+      }
     }
-    return this;
+
+    var body = Uint8List.fromList(lineBuffer);
+    Uri uri = Uri(query: env[1]);
+
+    return PocketRequest(
+      path: env[0],
+      httpMethod: env[2],
+      body: body,
+      contentType: env[3],
+      params: uri.queryParametersAll,
+    );
   }
 
-  PocketResponse writeln(String s) {
-    buffer.writeln(s);
-    return this;
+  String? plainBody() {
+    return body.toString();
   }
 
-  void close() {}
+  Map<String, dynamic>? jsonBody() {
+    if (body == null) {
+      return null;
+    }
 
-  @override
-  String toString() {
-    final out = StringBuffer();
-    headers.forEach((key, value) {
-      out.writeln("$key=$value");
-    });
-    out.writeln("====");
-    out.write(buffer.toString());
-    return out.toString();
-  }
-
-  bool _isJsonResponse() {
-    return headers.containsKey("content-type") &&
-        headers["content-type"] == "application/json";
+    if (contentType != "application/json") {
+      return null;
+    } else {
+      return jsonDecode(String.fromCharCodes(body!));
+    }
   }
 }

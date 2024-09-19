@@ -1,54 +1,44 @@
+// Main library, extract later
 import 'dart:convert';
-import 'pocket_request.dart';
 
-class PocketRequest {
-  final String path;
-  final String httpMethod;
-  final String? body;
-  final String contentType;
-  final Map<String, List<String>> params;
+class PocketResponse {
+  final buffer = StringBuffer();
+  final headers = <String, String>{};
 
-  final response = PocketResponse();
-
-  PocketRequest({
-    required this.path,
-    required this.httpMethod,
-    required this.body,
-    required this.contentType,
-    required this.params,
-  });
-
-  factory PocketRequest.fromEnvironment(Map<String, String> env) {
-    // From dart.go
-    // env["pf_path"] = path
-    // env["pf_query"] = c.Request.URL.RawQuery
-    // env["pf_method"] = c.Request.Method
-    // 	env["pf_body"] = string(body)
-    // env["pf_content_type"] = c.GetHeader("Content-Type")
-    Uri uri = Uri(query: env["pf_query"]);
-
-    return PocketRequest(
-      path: env["pf_path"]!,
-      httpMethod: env["pf_method"]!,
-      body: env['pf_body'],
-      contentType: env['pf_content_type'] ?? "text/plain",
-      params: uri.queryParametersAll,
-    );
+  PocketResponse addHeader(String key, String value) {
+    headers[key] = value;
+    return this;
   }
 
-  String? plainBody() {
-    return body;
-  }
-
-  Map<String, dynamic>? jsonBody() {
-    if (body == null) {
-      return null;
-    }
-
-    if (contentType != "application/json") {
-      return null;
+  PocketResponse write(Object s) {
+    if (_isJsonResponse()) {
+      buffer.write(jsonEncode(s));
     } else {
-      return jsonDecode(body!);
+      buffer.write(s);
     }
+    return this;
+  }
+
+  PocketResponse writeln(String s) {
+    buffer.writeln(s);
+    return this;
+  }
+
+  void close() {}
+
+  @override
+  String toString() {
+    final out = StringBuffer();
+    headers.forEach((key, value) {
+      out.writeln("$key=$value");
+    });
+    out.writeln("====");
+    out.write(buffer.toString());
+    return out.toString();
+  }
+
+  bool _isJsonResponse() {
+    return headers.containsKey("content-type") &&
+        headers["content-type"] == "application/json";
   }
 }
