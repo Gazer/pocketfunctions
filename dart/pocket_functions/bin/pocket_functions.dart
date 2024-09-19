@@ -23,20 +23,41 @@ void main(List<String> args) async {
   var zipFileName = "$packageName.zip";
   await createPackageZip(".", zipFileName);
 
-  await _createFunction(functionPath, zipFileName);
+  var id = await _createFunction(functionPath);
+  await _deployFunction(id, zipFileName);
 }
 
-Future<void> _createFunction(
-  String functionName,
+Future<int> _createFunction(
+  String functionPath,
+) async {
+  print("Starting deploy to $functionPath ...\n");
+
+  final uri = Uri.parse("http://localhost:8080/_/create");
+  var response = await http.post(
+    uri,
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    },
+    body: jsonEncode(<String, String>{
+      'uri': functionPath,
+    }),
+  );
+
+  if (response.statusCode == 200) {
+    var id = jsonDecode(response.body)["id"];
+    print("Function created with id=$id");
+    return id;
+  } else {
+    print("Deploy Error: ${response.statusCode}, ${response.body}");
+    exit(1);
+  }
+}
+
+Future<void> _deployFunction(
+  int id,
   String zipFilePath,
 ) async {
-  print("Starting deploy to $functionName ...\n");
-
-  if (functionName[0] == "/") {
-    functionName = functionName.substring(1);
-  }
-
-  final uri = Uri.parse("http://localhost:8080/_/create/$functionName");
+  final uri = Uri.parse("http://localhost:8080/_/upload/$id");
   final request = http.MultipartRequest('POST', uri);
 
   final fileName = p.basename(zipFilePath);
@@ -54,45 +75,4 @@ Future<void> _createFunction(
   } else {
     print("Deploy Error: ${response.statusCode}, $responseBody");
   }
-}
-
-Map<String, String> _createPayload({
-  required String path,
-  required String code,
-  required String deps,
-}) {
-  return {
-    "path": path,
-    "code": _escapeCode(code),
-    "deps": deps,
-  };
-}
-
-String _escapeCode(String code) {
-  final escapedCode = jsonEncode(code);
-  return jsonDecode(escapedCode);
-}
-
-String _getFunctionContent(File file) {
-  return file.readAsStringSync();
-}
-
-File? _getFunctionFile() {
-  final directory = Directory('lib');
-  if (!directory.existsSync()) {
-    return null;
-  }
-
-  FileSystemEntity? dartFile = directory
-      .listSync()
-      .where(
-        (file) => file is File && file.path.endsWith('.dart'),
-      )
-      .firstOrNull;
-
-  if (dartFile != null && dartFile is File) {
-    return dartFile;
-  }
-
-  return null;
 }

@@ -34,7 +34,7 @@ func checkExecutorDirectory(f *models.PocketFunction) {
 }
 
 func writeEntryPoint(f *models.PocketFunction) {
-	bytes, err := os.ReadFile(fmt.Sprintf("../dist/executors/%s/bin/executor.dart.template", f.Id))
+	bytes, err := os.ReadFile(fmt.Sprintf("../dist/executors/%d/bin/executor.dart.template", f.Id))
 	if err != nil {
 		log.Println("Can't read template")
 		return
@@ -43,7 +43,7 @@ func writeEntryPoint(f *models.PocketFunction) {
 
 	var executorDart = fmt.Sprintf(template, f.Code)
 
-	os.WriteFile(fmt.Sprintf("../dist/executors/%s/bin/executor.dart", f.Id), []byte(executorDart), 0666)
+	os.WriteFile(fmt.Sprintf("../dist/executors/%d/bin/executor.dart", f.Id), []byte(executorDart), 0666)
 }
 
 func writeDependencies(f *models.PocketFunction) {
@@ -139,7 +139,7 @@ func DeployDart(f *models.PocketFunction) {
 }
 
 func RunDart(f *models.PocketFunction, env map[string]string) (string, map[string]string, error) {
-	aotFile := fmt.Sprintf("../dist/executors/%s/bin/executor.aot", f.Id)
+	aotFile := fmt.Sprintf("../dist/executors/%d/bin/executor.aot", f.Id)
 
 	var responseHeaders map[string]string = make(map[string]string)
 	var builder strings.Builder
