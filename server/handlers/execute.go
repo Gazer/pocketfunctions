@@ -27,6 +27,7 @@ func Execute(db *sql.DB) func(c *gin.Context) {
 		}
 
 		filePath := createDataFile(c)
+		defer os.Remove(filePath)
 
 		var response, headers, error = languages.RunDart(function, filePath)
 		if error != nil {
