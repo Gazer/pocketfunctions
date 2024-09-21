@@ -9,7 +9,7 @@ import (
 )
 
 func InitDB() *sql.DB {
-	db, _ := sql.Open("sqlite3", ":memory:")
+	db, _ := sql.Open("sqlite3", "./db.sqlite3")
 	statement, err := db.Prepare(`CREATE TABLE IF NOT EXISTS functions (
 		id INTEGER PRIMARY KEY,
 		uri VARCHAR(255),
@@ -25,6 +25,12 @@ func InitDB() *sql.DB {
 }
 
 func CreateFunction(db *sql.DB, uri string) (int64, error) {
+	function, err := GetFunctionByUri(db, uri)
+	if err == nil {
+		log.Printf("Function exists with id=%d\n", function.Id)
+		return int64(function.Id), nil
+	}
+
 	statement, _ := db.Prepare("INSERT INTO functions (uri, code) VALUES (?, ?)")
 	result, err := statement.Exec(uri, "")
 	if err != nil {
@@ -34,9 +40,10 @@ func CreateFunction(db *sql.DB, uri string) (int64, error) {
 	return result.LastInsertId()
 }
 
-func UpdateFunction(db *sql.DB, function *PocketFunction) {
-	statement, _ := db.Prepare("UPDATE functions SET uri='%s', code='%s' WHERE id=?")
-	statement.Exec(function.Uri, function.Code, function.Id)
+func UpdateFunction(db *sql.DB, function *PocketFunction) error {
+	statement, _ := db.Prepare("UPDATE functions SET uri=?, code=? WHERE id=?")
+	_, err := statement.Exec(function.Uri, function.Code, function.Id)
+	return err
 }
 
 func GetFunctionByID(db *sql.DB, id string) (*PocketFunction, error) {

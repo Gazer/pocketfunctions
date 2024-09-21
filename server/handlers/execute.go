@@ -31,7 +31,7 @@ func Execute(db *sql.DB) gin.HandlerFunc {
 
 		var response, headers, error = languages.RunDart(function, filePath)
 		if error != nil {
-			c.String(http.StatusInternalServerError, filePath)
+			c.String(http.StatusInternalServerError, response)
 			return
 		}
 
