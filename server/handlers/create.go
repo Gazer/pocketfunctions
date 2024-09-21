@@ -13,7 +13,7 @@ type CreateRequest struct {
 	Uri string `json:"uri"`
 }
 
-func Create(db *sql.DB) func(c *gin.Context) {
+func Create(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var request CreateRequest
 		if err := c.BindJSON(&request); err != nil {

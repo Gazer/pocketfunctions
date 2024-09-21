@@ -13,7 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Execute(db *sql.DB) func(c *gin.Context) {
+func Execute(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var path = c.Request.URL.Path
 
