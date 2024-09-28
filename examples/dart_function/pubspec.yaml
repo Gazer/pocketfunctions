@@ -9,10 +9,13 @@ environment:
 # Add regular dependencies here.
 dependencies:
   pocket_functions:
-    path: ../pocket_functions
+    path: /Users/gazer/dev/pocketfunctions/dart/pocket_functions
   # path: ^1.8.0
 
 dev_dependencies:
+  build_runner: ^2.3.3
+  pocket_functions:
+    path: /Users/gazer/dev/pocketfunctions/dart/pocket_functions
   lints: ^4.0.0
   test: ^1.24.0
 

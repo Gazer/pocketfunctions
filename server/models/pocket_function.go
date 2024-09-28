@@ -7,9 +7,11 @@ import (
 )
 
 type PocketFunction struct {
-	Uri  string
-	Code string
-	Id   int
+	Uri       string
+	Code      string
+	Id        int
+	Execution int
+	Average   float64
 }
 
 func (f *PocketFunction) VendorPath() string {

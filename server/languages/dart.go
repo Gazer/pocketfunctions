@@ -37,7 +37,7 @@ func writeEntryPoint(f *models.PocketFunction) {
 		log.Println("Can't read template")
 		return
 	}
-	var executorDart = fmt.Sprintf(string(bytes), f.Code)
+	var executorDart = fmt.Sprintf(string(bytes), f.Code, f.Code)
 
 	os.WriteFile(fmt.Sprintf("../dist/executors/%d/bin/executor.dart", f.Id), []byte(executorDart), 0666)
 }

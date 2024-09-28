@@ -1,39 +1,46 @@
 package handlers
 
 import (
-	"database/sql"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/Gazer/pocketfunctions/languages"
 	"github.com/Gazer/pocketfunctions/models"
 	"github.com/gin-gonic/gin"
 )
 
-func Execute(db *sql.DB) gin.HandlerFunc {
+func (api *PocketAPI) Execute() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var path = c.Request.URL.Path
 
 		fmt.Printf("Requested Uri: %s\n", path)
 
-		function, err := models.GetFunctionByUri(db, path)
+		function, err := models.GetFunctionByUri(api.Db, path)
 		if err != nil {
 			fmt.Printf("Error: %s\n", err.Error())
 			c.String(http.StatusNotFound, err.Error())
+			models.RegisterExecuted(api.Db, 0, 0, http.StatusNotFound)
 			return
 		}
 
 		filePath := createDataFile(c)
 		defer os.Remove(filePath)
 
+		startTime := time.Now()
 		var response, headers, error = languages.RunDart(function, filePath)
+		elapsed := time.Since(startTime)
+
 		if error != nil {
 			c.String(http.StatusInternalServerError, response)
+			models.RegisterExecuted(api.Db, function.Id, elapsed, http.StatusInternalServerError)
 			return
 		}
+
+		models.RegisterExecuted(api.Db, function.Id, elapsed, http.StatusOK)
 
 		for key, value := range headers {
 			c.Header(key, value)

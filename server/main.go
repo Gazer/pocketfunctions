@@ -1,23 +1,20 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/Gazer/pocketfunctions/handlers"
-	"github.com/Gazer/pocketfunctions/models"
-	"github.com/gin-gonic/gin"
 )
 
 func main() {
 	log.Print("Let's go\n")
 
-	db := models.InitDB()
+	api := handlers.New()
+	api.InitAdminUI()
 
-	router := gin.Default()
+	fmt.Printf("├─ REST API: http://127.0.0.1:%d/api/\n", 8080)
+	fmt.Printf("└─ Admin UI: http://127.0.0.1:%d/_/\n", 8080)
 
-	router.POST("/_/create", handlers.Create(db))
-	router.POST("/_/upload/:id", handlers.Upload(db))
-	router.NoRoute(handlers.Execute(db))
-
-	router.Run("localhost:8080")
+	api.Router.Run("localhost:8080")
 }
