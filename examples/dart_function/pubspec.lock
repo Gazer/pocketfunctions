@@ -324,9 +324,11 @@ packages:
   pocket_functions:
     dependency: "direct main"
     description:
-      path: "/Users/gazer/dev/pocketfunctions/dart/pocket_functions"
-      relative: false
-    source: path
+      path: "."
+      ref: HEAD
+      resolved-ref: "3e0ca9f31d8000774f999d69d0a3adec38585251"
+      url: "https://github.com/Gazer/exp-pocketfunct-dart"
+    source: git
     version: "1.0.0"
   pool:
     dependency: transitive
