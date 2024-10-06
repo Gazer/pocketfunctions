@@ -12,6 +12,7 @@ type PocketFunction struct {
 	Id        int
 	Execution int
 	Average   float64
+	DockerId  string
 }
 
 func (f *PocketFunction) VendorPath() string {

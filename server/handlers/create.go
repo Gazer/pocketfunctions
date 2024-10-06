@@ -9,16 +9,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type CreateRequest struct {
+type createRequest struct {
 	Uri string `json:"uri"`
 }
 
 func Create(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var request CreateRequest
+		var request createRequest
 		if err := c.BindJSON(&request); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "Invalida JSON",
+				"error": "Invalid JSON",
 			})
 			return
 		}
@@ -34,7 +34,7 @@ func Create(db *sql.DB) gin.HandlerFunc {
 			return
 		}
 
-		log.Printf("New function registered at %s\n", request.Uri)
+		log.Printf("New function registered at %s with id %d\n", request.Uri, id)
 		c.JSON(http.StatusOK, gin.H{
 			"id": id,
 		})

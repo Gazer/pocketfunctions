@@ -2,18 +2,19 @@ package handlers
 
 import (
 	"fmt"
-	"io"
 	"log"
 	"net/http"
-	"os"
+	"net/http/httputil"
 	"time"
 
-	"github.com/Gazer/pocketfunctions/languages"
 	"github.com/Gazer/pocketfunctions/models"
 	"github.com/gin-gonic/gin"
 )
 
-func (api *PocketAPI) Execute() gin.HandlerFunc {
+func (api *PocketAPI) ExecuteDocker() gin.HandlerFunc {
+	// port will be from the API, statically assigned on create
+	target := "localhost:%d"
+
 	return func(c *gin.Context) {
 		var path = c.Request.URL.Path
 
@@ -27,48 +28,33 @@ func (api *PocketAPI) Execute() gin.HandlerFunc {
 			return
 		}
 
-		filePath := createDataFile(c)
-		defer os.Remove(filePath)
-
 		startTime := time.Now()
-		var response, headers, error = languages.RunDart(function, filePath)
-		elapsed := time.Since(startTime)
+		director := func(req *http.Request) {
+			// r := c.Request
 
-		if error != nil {
-			c.String(http.StatusInternalServerError, response)
-			models.RegisterExecuted(api.Db, function.Id, elapsed, http.StatusInternalServerError)
-			return
+			req.URL.Scheme = "http"
+			req.URL.Host = fmt.Sprintf(target, 8080+function.Id)
+			// req.Header["my-header"] = []string{r.Header.Get("my-header")}
+			// Golang camelcases headers
+			// delete(req.Header, "My-Header")
 		}
-
-		models.RegisterExecuted(api.Db, function.Id, elapsed, http.StatusOK)
-
-		for key, value := range headers {
-			c.Header(key, value)
+		modifyHandler := func(response *http.Response) error {
+			elapsed := time.Since(startTime)
+			log.Printf("f(%d) executed in %d with code %d\n", function.Id, elapsed, response.StatusCode)
+			if response.StatusCode == 200 {
+				models.RegisterExecuted(api.Db, function.Id, elapsed, http.StatusOK)
+			} else {
+				models.RegisterExecuted(api.Db, function.Id, elapsed, http.StatusInternalServerError)
+			}
+			return nil
 		}
-		c.String(http.StatusOK, response)
+		errorHandler := func(rw http.ResponseWriter, req *http.Request, err error) {
+			elapsed := time.Since(startTime)
+			models.RegisterExecuted(api.Db, function.Id, elapsed, http.StatusBadGateway)
+			log.Printf("f(%d) executed in %d with code 502\n", function.Id, elapsed)
+			rw.WriteHeader(http.StatusBadGateway)
+		}
+		proxy := &httputil.ReverseProxy{Director: director, ModifyResponse: modifyHandler, ErrorHandler: errorHandler}
+		proxy.ServeHTTP(c.Writer, c.Request)
 	}
-}
-
-func createDataFile(c *gin.Context) string {
-	f, err := os.CreateTemp("/tmp", "tmpfile-")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer f.Close()
-
-	// write data to the temporary file
-	f.Write([]byte(c.Request.URL.Path))
-	f.Write([]byte("\n"))
-	f.Write([]byte(c.Request.URL.RawQuery))
-	f.Write([]byte("\n"))
-	f.Write([]byte(c.Request.Method))
-	f.Write([]byte("\n"))
-	f.Write([]byte(c.GetHeader("Content-Type")))
-	f.Write([]byte("\n"))
-	body, err := io.ReadAll(c.Request.Body)
-	if err == nil {
-		f.Write([]byte(body))
-	}
-	return f.Name()
 }

@@ -19,6 +19,7 @@ func Upload(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if err := findFunction(db, c); err != nil {
 			log.Println("Bad request")
+			log.Println(err.Error())
 			c.String(http.StatusBadRequest, err.Error())
 		} else {
 			c.String(http.StatusOK, "Ok")
@@ -60,11 +61,19 @@ func copyFile(db *sql.DB, function *models.PocketFunction, file multipart.File) 
 }
 
 func saveAndDeploy(db *sql.DB, function *models.PocketFunction) error {
+	log.Print("Deploying ... \n")
+	dockerId, err := languages.DeployDartDocker(function)
+	if err != nil {
+		log.Println("Deploy failed")
+		return err
+	}
+
+	log.Printf("Container started at %s\n", dockerId)
+	function.DockerId = dockerId
+
 	if err := models.UpdateFunction(db, function); err != nil {
 		return err
 	}
 
-	log.Print("Deploying ... \n")
-	languages.DeployDart(function)
 	return nil
 }

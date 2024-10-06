@@ -13,14 +13,14 @@ import (
 
 var headerTemplate = `
 	<small class="text-muted mb-1">%s</small>
- 	<h3 class="card-title mb-0">%d</h3>
-   <p class="small text-muted mb-0">
-    <span class="fe fe-arrow-%s fe-12 text-%s">
-    </span>
-    <span>
-    	%.1f%% Last week
-    </span>
-  </p>`
+	<h3 class="card-title mb-0">%d</h3>
+	 <p class="small text-muted mb-0">
+		<span class="fe fe-arrow-%s fe-12 text-%s">
+		</span>
+		<span>
+			%.1f%% Last week
+		</span>
+	</p>`
 
 type PocketAPI struct {
 	Db     *sql.DB
@@ -34,7 +34,7 @@ func New() *PocketAPI {
 	// REST API
 	api.registerApi()
 	// Catch-all to execute functions if any match exists
-	api.Router.NoRoute(api.Execute())
+	api.Router.NoRoute(api.ExecuteDocker())
 	return &api
 }
 
@@ -90,171 +90,171 @@ func (api *PocketAPI) getHistogramHandler() gin.HandlerFunc {
 
 		js := fmt.Sprintf(`
 			var lineChart,
-  lineChartoptions = {
-    series: [
-      {
-        name: "Functions",
-        data: [
-          %s
-        ],
-      },
-    ],
-    chart: {
-      height: 350,
-      type: "line",
-      background: !1,
-      zoom: {
-        enabled: !1,
-      },
-      toolbar: {
-        show: !1,
-      },
-    },
-    theme: {
-      mode: colors.chartTheme,
-    },
-    stroke: {
-      show: !0,
-      curve: "smooth",
-      lineCap: "round",
-      colors: chartColors,
-      width: [3, 2, 3],
-      dashArray: [0, 0, 0],
-    },
-    dataLabels: {
-      enabled: !1,
-    },
-    responsive: [
-      {
-        breakpoint: 480,
-        options: {
-          legend: {
-            position: "bottom",
-            offsetX: -10,
-            offsetY: 0,
-          },
-        },
-      },
-    ],
-    markers: {
-      size: 4,
-      colors: base.primaryColor,
-      strokeColors: colors.borderColor,
-      strokeWidth: 2,
-      strokeOpacity: 0.9,
-      strokeDashArray: 0,
-      fillOpacity: 1,
-      discrete: [],
-      shape: "circle",
-      radius: 2,
-      offsetX: 0,
-      offsetY: 0,
-      onClick: void 0,
-      onDblClick: void 0,
-      showNullDataPoints: !0,
-      hover: {
-        size: void 0,
-        sizeOffset: 3,
-      },
-    },
-    xaxis: {
-      type: "datetime",
-      categories: [
-      	%s
-      ],
-      labels: {
-        show: !0,
-        trim: !1,
-        minHeight: void 0,
-        maxHeight: 120,
-        style: {
-          colors: colors.mutedColor,
-          cssClass: "text-muted",
-          fontFamily: base.defaultFontFamily,
-        },
-      },
-      axisBorder: {
-        show: !1,
-      },
-    },
-    yaxis: {
-      labels: {
-        show: !0,
-        trim: !1,
-        offsetX: -10,
-        minHeight: void 0,
-        maxHeight: 120,
-        style: {
-          colors: colors.mutedColor,
-          cssClass: "text-muted",
-          fontFamily: base.defaultFontFamily,
-        },
-      },
-    },
-    legend: {
-      position: "top",
-      fontFamily: base.defaultFontFamily,
-      fontWeight: 400,
-      labels: {
-        colors: colors.mutedColor,
-        useSeriesColors: !1,
-      },
-      markers: {
-        width: 10,
-        height: 10,
-        strokeWidth: 0,
-        strokeColor: colors.borderColor,
-        fillColors: chartColors,
-        radius: 6,
-        customHTML: void 0,
-        onClick: void 0,
-        offsetX: 0,
-        offsetY: 0,
-      },
-      itemMargin: {
-        horizontal: 10,
-        vertical: 0,
-      },
-      onItemClick: {
-        toggleDataSeries: !0,
-      },
-      onItemHover: {
-        highlightDataSeries: !0,
-      },
-    },
-    grid: {
-      show: !0,
-      borderColor: colors.borderColor,
-      strokeDashArray: 0,
-      position: "back",
-      xaxis: {
-        lines: {
-          show: !1,
-        },
-      },
-      yaxis: {
-        lines: {
-          show: !0,
-        },
-      },
-      row: {
-        colors: void 0,
-        opacity: 0.5,
-      },
-      column: {
-        colors: void 0,
-        opacity: 0.5,
-      },
-      padding: {
-        top: 0,
-        right: 0,
-        bottom: 0,
-        left: 0,
-      },
-    },
-  },
-  lineChartCtn = document.querySelector("#lineChart");
-  lineChartCtn && (lineChart = new ApexCharts(lineChartCtn, lineChartoptions)).render();
+	lineChartoptions = {
+		series: [
+			{
+				name: "Functions",
+				data: [
+					%s
+				],
+			},
+		],
+		chart: {
+			height: 350,
+			type: "line",
+			background: !1,
+			zoom: {
+				enabled: !1,
+			},
+			toolbar: {
+				show: !1,
+			},
+		},
+		theme: {
+			mode: colors.chartTheme,
+		},
+		stroke: {
+			show: !0,
+			curve: "smooth",
+			lineCap: "round",
+			colors: chartColors,
+			width: [3, 2, 3],
+			dashArray: [0, 0, 0],
+		},
+		dataLabels: {
+			enabled: !1,
+		},
+		responsive: [
+			{
+				breakpoint: 480,
+				options: {
+					legend: {
+						position: "bottom",
+						offsetX: -10,
+						offsetY: 0,
+					},
+				},
+			},
+		],
+		markers: {
+			size: 4,
+			colors: base.primaryColor,
+			strokeColors: colors.borderColor,
+			strokeWidth: 2,
+			strokeOpacity: 0.9,
+			strokeDashArray: 0,
+			fillOpacity: 1,
+			discrete: [],
+			shape: "circle",
+			radius: 2,
+			offsetX: 0,
+			offsetY: 0,
+			onClick: void 0,
+			onDblClick: void 0,
+			showNullDataPoints: !0,
+			hover: {
+				size: void 0,
+				sizeOffset: 3,
+			},
+		},
+		xaxis: {
+			type: "datetime",
+			categories: [
+				%s
+			],
+			labels: {
+				show: !0,
+				trim: !1,
+				minHeight: void 0,
+				maxHeight: 120,
+				style: {
+					colors: colors.mutedColor,
+					cssClass: "text-muted",
+					fontFamily: base.defaultFontFamily,
+				},
+			},
+			axisBorder: {
+				show: !1,
+			},
+		},
+		yaxis: {
+			labels: {
+				show: !0,
+				trim: !1,
+				offsetX: -10,
+				minHeight: void 0,
+				maxHeight: 120,
+				style: {
+					colors: colors.mutedColor,
+					cssClass: "text-muted",
+					fontFamily: base.defaultFontFamily,
+				},
+			},
+		},
+		legend: {
+			position: "top",
+			fontFamily: base.defaultFontFamily,
+			fontWeight: 400,
+			labels: {
+				colors: colors.mutedColor,
+				useSeriesColors: !1,
+			},
+			markers: {
+				width: 10,
+				height: 10,
+				strokeWidth: 0,
+				strokeColor: colors.borderColor,
+				fillColors: chartColors,
+				radius: 6,
+				customHTML: void 0,
+				onClick: void 0,
+				offsetX: 0,
+				offsetY: 0,
+			},
+			itemMargin: {
+				horizontal: 10,
+				vertical: 0,
+			},
+			onItemClick: {
+				toggleDataSeries: !0,
+			},
+			onItemHover: {
+				highlightDataSeries: !0,
+			},
+		},
+		grid: {
+			show: !0,
+			borderColor: colors.borderColor,
+			strokeDashArray: 0,
+			position: "back",
+			xaxis: {
+				lines: {
+					show: !1,
+				},
+			},
+			yaxis: {
+				lines: {
+					show: !0,
+				},
+			},
+			row: {
+				colors: void 0,
+				opacity: 0.5,
+			},
+			column: {
+				colors: void 0,
+				opacity: 0.5,
+			},
+			padding: {
+				top: 0,
+				right: 0,
+				bottom: 0,
+				left: 0,
+			},
+		},
+	},
+	lineChartCtn = document.querySelector("#lineChart");
+	lineChartCtn && (lineChart = new ApexCharts(lineChartCtn, lineChartoptions)).render();
 `, jsValues, jsDates)
 
 		c.String(http.StatusOK, js)

@@ -28,8 +28,11 @@ func CreateFunction(db *sql.DB, uri string) (int64, error) {
 		return int64(function.Id), nil
 	}
 
-	statement, _ := db.Prepare("INSERT INTO functions (uri, code) VALUES (?, ?)")
-	result, err := statement.Exec(uri, "")
+	statement, err := db.Prepare("INSERT INTO functions (uri, code, docker_id) VALUES (?, ?, ?)")
+	if err != nil {
+		return -1, err
+	}
+	result, err := statement.Exec(uri, "", "")
 	if err != nil {
 		log.Println(err.Error())
 		return -1, err
@@ -38,8 +41,11 @@ func CreateFunction(db *sql.DB, uri string) (int64, error) {
 }
 
 func UpdateFunction(db *sql.DB, function *PocketFunction) error {
-	statement, _ := db.Prepare("UPDATE functions SET uri=?, code=? WHERE id=?")
-	_, err := statement.Exec(function.Uri, function.Code, function.Id)
+	statement, err := db.Prepare("UPDATE functions SET uri=?, code=?, docker_id=? WHERE id=?")
+	if err != nil {
+		return err
+	}
+	_, err = statement.Exec(function.Uri, function.Code, function.DockerId, function.Id)
 	return err
 }
 
@@ -61,7 +67,7 @@ func GetFunctionByID(db *sql.DB, id string) (*PocketFunction, error) {
 
 	var function PocketFunction
 	rows.Next()
-	rows.Scan(&function.Id, &function.Uri, &function.Code)
+	rows.Scan(&function.Id, &function.Uri, &function.DockerId, &function.Code)
 
 	return &function, nil
 }
@@ -73,7 +79,7 @@ func GetFunctionByUri(db *sql.DB, uri string) (*PocketFunction, error) {
 
 	var function PocketFunction
 	if rows.Next() {
-		rows.Scan(&function.Id, &function.Uri, &function.Code)
+		rows.Scan(&function.Id, &function.Uri, &function.DockerId, &function.Code)
 
 		return &function, nil
 	}
@@ -260,6 +266,7 @@ func createFunctionsTable(db *sql.DB) {
 	statement, err := db.Prepare(`CREATE TABLE IF NOT EXISTS functions (
 		id INTEGER PRIMARY KEY,
 		uri VARCHAR(255),
+		docker_id VARCHAR(255),
 		code VARCHAR(255)
 	)`)
 	if err != nil {
