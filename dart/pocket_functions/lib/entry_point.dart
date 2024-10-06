@@ -1,3 +1,0 @@
-class EntryPoint {
-  const EntryPoint();
-}
