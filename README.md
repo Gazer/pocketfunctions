@@ -34,10 +34,10 @@ Some limitations:
 
 A function needs a runtime to be executed, for now, we only have `dart`.
 
-Check [https://github.com/Gazer/exp-pocketfunct-dart] for more information.
+Check [https://github.com/Gazer/exp-pocketfunct-dart](https://github.com/Gazer/exp-pocketfunct-dart) for more information.
 
 ## Admin
 
 We have a WorkInProgress admin panel to see some values, just open 
-[http://localhost:8080/_/] in your browser.
+[http://localhost:8080/_/](http://localhost:8080/_/) in your browser.
 
