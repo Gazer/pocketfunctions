@@ -103,7 +103,7 @@ func GetFunctions(db *sql.DB) ([]*PocketFunction, error) {
 
 	for rows.Next() {
 		var function PocketFunction
-		rows.Scan(&function.Id, &function.Uri, &function.Code, &function.Execution, &function.Average)
+		rows.Scan(&function.Id, &function.Uri, &function.DockerId, &function.Code, &function.Execution, &function.Average)
 		functions = append(functions, &function)
 	}
 
