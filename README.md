@@ -39,5 +39,5 @@ Check [https://github.com/Gazer/exp-pocketfunct-dart] for more information.
 ## Admin
 
 We have a WorkInProgress admin panel to see some values, just open 
-[http://localhost:8080/_/dashboard-analytics.html] in your browser.
+[http://localhost:8080/_/] in your browser.
 
