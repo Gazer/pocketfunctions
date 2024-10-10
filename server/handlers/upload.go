@@ -46,7 +46,7 @@ func loadFile(db *sql.DB, c *gin.Context, function *models.PocketFunction) error
 }
 
 func copyFile(db *sql.DB, function *models.PocketFunction, file multipart.File) error {
-	dst, err := os.Create(fmt.Sprintf("../dist/function_repository/%s.zip", function.Code))
+	dst, err := os.Create(fmt.Sprintf("docker_executor/dist/%s.zip", function.Code))
 	if err != nil {
 		return err
 	}

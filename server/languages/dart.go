@@ -11,16 +11,10 @@ import (
 )
 
 func DeployDartDocker(f *models.PocketFunction) (string, error) {
-	zipFilePath := fmt.Sprintf("../dist/function_repository/%s.zip", f.Code)
-	cmd := exec.Command("cp", zipFilePath, "docker_executor/")
-	if err := cmd.Run(); err != nil {
-		return "", err
-	}
-
 	var stdOut bytes.Buffer
 	var stdErr bytes.Buffer
 
-	cmd = exec.Command("docker", "build", "-t", f.Code, "--build-arg", fmt.Sprintf("name=%s", f.Code), ".")
+	cmd := exec.Command("docker", "build", "-t", f.Code, "--build-arg", fmt.Sprintf("name=%s", f.Code), ".")
 	cmd.Stdout = &stdOut
 	cmd.Stderr = &stdErr
 	cmd.Dir = "./docker_executor"
