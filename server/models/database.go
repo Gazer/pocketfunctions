@@ -144,24 +144,24 @@ func GetHistogram(db *sql.DB) ([]Pair[string, int], error) {
 
 func GetTotalCalls(db *sql.DB) (Pair[int, float32], error) {
 	rows, err := db.Query(`WITH current_week AS (
-	    SELECT COUNT(*) AS count
+	    SELECT COUNT(*) AS value
 	    FROM functions_analytics
 	    WHERE created_at >= date('now', 'weekday 0', '-6 days')
 	    AND created_at < date('now', 'weekday 0', '+1 day')
 			AND status = 200
     ),
     previous_week AS (
-	    SELECT COUNT(*) AS count
+	    SELECT COUNT(*) AS value
 	    FROM functions_analytics
 	    WHERE created_at >= date('now', 'weekday 0', '-13 days')
 	    AND created_at < date('now', 'weekday 0', '-6 days')
 			AND status = 200
 		)
-		SELECT cw.count AS current_week_count,
+		SELECT cw.value AS current_week_value,
     CASE
-        WHEN pw.count = 0 AND cw.count > 0 THEN 100.0
-        WHEN pw.count = 0 AND cw.count = 0 THEN 0.0
-        ELSE ROUND(((cw.count - pw.count) * 100.0) / pw.count, 2)
+        WHEN pw.value = 0 AND cw.value > 0 THEN 100.0
+        WHEN pw.value = 0 AND cw.value = 0 THEN 0.0
+        ELSE ROUND(((cw.value - pw.value) * 100.0) / pw.value, 2)
     END AS percentage_variation
     FROM current_week cw, previous_week pw;
   `)
@@ -184,24 +184,24 @@ func GetTotalCalls(db *sql.DB) (Pair[int, float32], error) {
 
 func GetTotalErrors(db *sql.DB) (Pair[int, float32], error) {
 	rows, err := db.Query(`WITH current_week AS (
-	    SELECT COUNT(*) AS count
+	    SELECT COUNT(*) AS value
 	    FROM functions_analytics
 	    WHERE created_at >= date('now', 'weekday 0', '-6 days')
 	    AND created_at < date('now', 'weekday 0', '+1 day')
 			AND status <> 200
     ),
     previous_week AS (
-	    SELECT COUNT(*) AS count
+	    SELECT COUNT(*) AS value
 	    FROM functions_analytics
 	    WHERE created_at >= date('now', 'weekday 0', '-13 days')
 	    AND created_at < date('now', 'weekday 0', '-6 days')
 			AND status <> 200
 		)
-		SELECT cw.count AS current_week_count,
+		SELECT cw.value AS current_week_value,
     CASE
-        WHEN pw.count = 0 AND cw.count > 0 THEN 100.0
-        WHEN pw.count = 0 AND cw.count = 0 THEN 0.0
-        ELSE ROUND(((cw.count - pw.count) * 100.0) / pw.count, 2)
+        WHEN pw.value = 0 AND cw.value > 0 THEN 100.0
+        WHEN pw.value = 0 AND cw.value = 0 THEN 0.0
+        ELSE ROUND(((cw.value - pw.value) * 100.0) / pw.value, 2)
     END AS percentage_variation
     FROM current_week cw, previous_week pw;
   `)
@@ -222,31 +222,31 @@ func GetTotalErrors(db *sql.DB) (Pair[int, float32], error) {
 	return pair, fmt.Errorf("No rows")
 }
 
-func GetAvgTime(db *sql.DB) (Pair[int, float32], error) {
+func GetAvgTime(db *sql.DB) (Pair[float64, float64], error) {
 	rows, err := db.Query(`WITH current_week AS (
-	    SELECT AVG(time_ms) AS count
-	    FROM functions_analytics
+	    SELECT IFNULL(AVG(time_ms),0) AS value
+			FROM functions_analytics
 	    WHERE created_at >= date('now', 'weekday 0', '-6 days')
 	    AND created_at < date('now', 'weekday 0', '+1 day')
 			AND status = 200
 		),
 		previous_week AS (
-			SELECT AVG(time_ms) AS count
+			SELECT IFNULL(AVG(time_ms), 0) AS value
 			FROM functions_analytics
 			WHERE created_at >= date('now', 'weekday 0', '-13 days')
 			AND created_at < date('now', 'weekday 0', '-6 days')
 			AND status = 200
 		)
 		SELECT
-    cw.count AS current_week_count,
+    cw.value AS current_week_value,
     CASE
-        WHEN pw.count = 0 AND cw.count > 0 THEN 100.0
-        WHEN pw.count = 0 AND cw.count = 0 THEN 0.0
-        ELSE ROUND(((cw.count - pw.count) * 100.0) / pw.count, 2)
+        WHEN pw.value = 0 AND cw.value > 0 THEN 100.0
+        WHEN pw.value = 0 AND cw.value = 0 THEN 0.0
+        ELSE ROUND(((cw.value - pw.value) * 100.0) / pw.value, 2)
     END AS percentage_variation
     FROM current_week cw, previous_week pw;
   `)
-	var pair Pair[int, float32]
+	var pair Pair[float64, float64]
 
 	if err != nil {
 		return pair, err

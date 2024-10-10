@@ -13,7 +13,7 @@ import (
 
 var headerTemplate = `
 	<small class="text-muted mb-1">%s</small>
-	<h3 class="card-title mb-0">%d</h3>
+	<h3 class="card-title mb-0">%s</h3>
 	 <p class="small text-muted mb-0">
 		<span class="fe fe-arrow-%s fe-12 text-%s">
 		</span>
@@ -268,7 +268,7 @@ func (api *PocketAPI) getRunsHandler() gin.HandlerFunc {
 		if err != nil {
 			response = err.Error()
 		} else {
-			response = headerSection("Total Runs", data.First, float64(data.Second))
+			response = headerSection("Total Runs", fmt.Sprintf("%d", data.First), float64(data.Second))
 		}
 		c.String(http.StatusOK, response)
 	}
@@ -281,7 +281,7 @@ func (api *PocketAPI) getErrorsHandler() gin.HandlerFunc {
 		if err != nil {
 			response = err.Error()
 		} else {
-			response = headerSection("Errors", data.First, float64(data.Second))
+			response = headerSection("Errors", fmt.Sprintf("%d", data.First), float64(data.Second))
 		}
 		c.String(http.StatusOK, response)
 	}
@@ -294,13 +294,14 @@ func (api *PocketAPI) getAvgTimeHandler() gin.HandlerFunc {
 		if err != nil {
 			response = err.Error()
 		} else {
-			response = headerSection("Avg Time (ms)", data.First, float64(data.Second))
+			title := fmt.Sprintf("%.2f", data.First)
+			response = headerSection("Avg Time (ms)", title, float64(data.Second))
 		}
 		c.String(http.StatusOK, response)
 	}
 }
 
-func headerSection(title string, total int, variation float64) string {
+func headerSection(title string, total string, variation float64) string {
 	var arrow string
 	var color string
 	if variation >= 0 {
