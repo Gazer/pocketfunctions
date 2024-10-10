@@ -1,4 +1,4 @@
-name: pocketbase_example
+name: pocketbase_listen
 description: A starting point for Dart libraries or applications.
 version: 1.0.0
 # repository: https://github.com/my_org/my_repo
@@ -11,10 +11,11 @@ dependencies:
   pocketbase: ^0.18.1
   pocket_functions:
     git: https://github.com/Gazer/exp-pocketfunct-dart
+# path: ^1.8.0
 
 dev_dependencies:
   lints: ^4.0.0
   test: ^1.24.0
-
-pocket_functions:
-  path: /items
+  build_runner:
+  pocket_functions:
+    git: https://github.com/Gazer/exp-pocketfunct-dart

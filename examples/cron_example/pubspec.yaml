@@ -1,5 +1,5 @@
-name: pocketbase_example
-description: A starting point for Dart libraries or applications.
+name: cron_example
+description: A sample command-line application.
 version: 1.0.0
 # repository: https://github.com/my_org/my_repo
 
@@ -8,13 +8,12 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
-  pocketbase: ^0.18.1
   pocket_functions:
+    #path: ../../../pocketfunctions_dart/
     git: https://github.com/Gazer/exp-pocketfunct-dart
+
+# path: ^1.8.0
 
 dev_dependencies:
   lints: ^4.0.0
   test: ^1.24.0
-
-pocket_functions:
-  path: /items
