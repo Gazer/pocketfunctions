@@ -14,7 +14,7 @@ func DeployDartDocker(f *models.PocketFunction) (string, error) {
 	var stdOut bytes.Buffer
 	var stdErr bytes.Buffer
 
-	cmd := exec.Command("docker", "build", "-t", f.Code, "--build-arg", fmt.Sprintf("name=%s", f.Code), ".")
+	cmd := exec.Command("docker", "build", "-t", f.Name, "--build-arg", fmt.Sprintf("name=%s", f.Name), ".")
 	cmd.Stdout = &stdOut
 	cmd.Stderr = &stdErr
 	cmd.Dir = "./docker_executor"
@@ -34,7 +34,7 @@ func StartDartDocker(f *models.PocketFunction) (string, error) {
 
 	// Stop any other version of the container. Ignore errors
 	log.Printf("Stopping container %s\n", f.DockerId)
-	cmd := exec.Command("docker", "stop", f.Code)
+	cmd := exec.Command("docker", "stop", f.Name)
 	cmd.Stdout = &stdOut
 	cmd.Stderr = &stdErr
 	cmd.Run()
@@ -42,16 +42,16 @@ func StartDartDocker(f *models.PocketFunction) (string, error) {
 	log.Println(stdErr.String())
 
 	log.Printf("Removing container %s\n", f.DockerId)
-	cmd = exec.Command("docker", "rm", f.Code)
+	cmd = exec.Command("docker", "rm", f.Name)
 	cmd.Stdout = &stdOut
 	cmd.Stderr = &stdErr
 	cmd.Run()
 	log.Println(stdOut.String())
 	log.Println(stdErr.String())
 
-	log.Printf("Startning new container %s\n", f.Code)
+	log.Printf("Startning new container %s\n", f.Name)
 	port := fmt.Sprintf("%d:8080", f.Id+8080)
-	cmd = exec.Command("docker", "run", "-p", port, "--name", f.Code, "-d", "--restart", "unless-stopped", f.Code)
+	cmd = exec.Command("docker", "run", "-p", port, "--name", f.Name, "-d", "--restart", "unless-stopped", f.Name)
 	cmd.Stdout = &stdOut
 	cmd.Stderr = &stdErr
 

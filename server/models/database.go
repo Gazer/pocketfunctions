@@ -21,18 +21,18 @@ func InitDB() *sql.DB {
 	return db
 }
 
-func CreateFunction(db *sql.DB, uri string) (int64, error) {
-	function, err := GetFunctionByUri(db, uri)
+func CreateFunction(db *sql.DB, name string) (int64, error) {
+	function, err := GetFunctionByName(db, name)
 	if err == nil {
 		log.Printf("Function exists with id=%d\n", function.Id)
 		return int64(function.Id), nil
 	}
 
-	statement, err := db.Prepare("INSERT INTO functions (uri, code, docker_id) VALUES (?, ?, ?)")
+	statement, err := db.Prepare("INSERT INTO functions (name, docker_id) VALUES (?, ?)")
 	if err != nil {
 		return -1, err
 	}
-	result, err := statement.Exec(uri, "", "")
+	result, err := statement.Exec(name, "")
 	if err != nil {
 		log.Println(err.Error())
 		return -1, err
@@ -41,11 +41,11 @@ func CreateFunction(db *sql.DB, uri string) (int64, error) {
 }
 
 func UpdateFunction(db *sql.DB, function *PocketFunction) error {
-	statement, err := db.Prepare("UPDATE functions SET uri=?, code=?, docker_id=? WHERE id=?")
+	statement, err := db.Prepare("UPDATE functions SET name=?, docker_id=? WHERE id=?")
 	if err != nil {
 		return err
 	}
-	_, err = statement.Exec(function.Uri, function.Code, function.DockerId, function.Id)
+	_, err = statement.Exec(function.Name, function.DockerId, function.Id)
 	return err
 }
 
@@ -67,19 +67,19 @@ func GetFunctionByID(db *sql.DB, id string) (*PocketFunction, error) {
 
 	var function PocketFunction
 	rows.Next()
-	rows.Scan(&function.Id, &function.Uri, &function.DockerId, &function.Code)
+	rows.Scan(&function.Id, &function.Name, &function.DockerId)
 
 	return &function, nil
 }
 
-func GetFunctionByUri(db *sql.DB, uri string) (*PocketFunction, error) {
-	statement, _ := db.Prepare("SELECT * FROM functions WHERE uri=?")
-	rows, _ := statement.Query(uri)
+func GetFunctionByName(db *sql.DB, name string) (*PocketFunction, error) {
+	statement, _ := db.Prepare("SELECT * FROM functions WHERE name=?")
+	rows, _ := statement.Query(name)
 	defer rows.Close()
 
 	var function PocketFunction
 	if rows.Next() {
-		rows.Scan(&function.Id, &function.Uri, &function.DockerId, &function.Code)
+		rows.Scan(&function.Id, &function.Name, &function.DockerId)
 
 		return &function, nil
 	}
@@ -103,7 +103,7 @@ func GetFunctions(db *sql.DB) ([]*PocketFunction, error) {
 
 	for rows.Next() {
 		var function PocketFunction
-		rows.Scan(&function.Id, &function.Uri, &function.DockerId, &function.Code, &function.Execution, &function.Average)
+		rows.Scan(&function.Id, &function.Name, &function.DockerId, &function.Name, &function.Execution, &function.Average)
 		functions = append(functions, &function)
 	}
 
@@ -265,9 +265,8 @@ func GetAvgTime(db *sql.DB) (Pair[float64, float64], error) {
 func createFunctionsTable(db *sql.DB) {
 	statement, err := db.Prepare(`CREATE TABLE IF NOT EXISTS functions (
 		id INTEGER PRIMARY KEY,
-		uri VARCHAR(255),
-		docker_id VARCHAR(255),
-		code VARCHAR(255)
+		name VARCHAR(255),
+		docker_id VARCHAR(255)
 	)`)
 	if err != nil {
 		log.Println("Error in creating table")

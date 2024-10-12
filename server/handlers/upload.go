@@ -8,7 +8,6 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
-	"strings"
 
 	"github.com/Gazer/pocketfunctions/languages"
 	"github.com/Gazer/pocketfunctions/models"
@@ -37,16 +36,15 @@ func findFunction(db *sql.DB, c *gin.Context) error {
 }
 
 func loadFile(db *sql.DB, c *gin.Context, function *models.PocketFunction) error {
-	file, fileHeader, err := c.Request.FormFile("file")
+	file, _, err := c.Request.FormFile("file")
 	if err != nil {
 		return err
 	}
-	function.Code = strings.TrimRight(fileHeader.Filename, ".zip")
 	return copyFile(db, function, file)
 }
 
 func copyFile(db *sql.DB, function *models.PocketFunction, file multipart.File) error {
-	dst, err := os.Create(fmt.Sprintf("docker_executor/dist/%s.zip", function.Code))
+	dst, err := os.Create(fmt.Sprintf("docker_executor/dist/%s.zip", function.Name))
 	if err != nil {
 		return err
 	}

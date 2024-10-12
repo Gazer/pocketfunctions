@@ -65,8 +65,7 @@ func (api *PocketAPI) getFunctionsHandler() gin.HandlerFunc {
 		for _, f := range functions {
 			buffer.Write([]byte("<tr>"))
 			writeTd(&buffer, strconv.Itoa(f.Id))
-			writeTd(&buffer, string(f.Code))
-			writeTd(&buffer, string(f.Uri))
+			writeTd(&buffer, string(f.Name))
 			writeTd(&buffer, strconv.Itoa(f.Execution))
 			writeTd(&buffer, strconv.FormatFloat(f.Average, 'f', 1, 64))
 			buffer.Write([]byte("</tr>"))

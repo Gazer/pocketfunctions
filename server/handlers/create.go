@@ -10,7 +10,7 @@ import (
 )
 
 type createRequest struct {
-	Uri string `json:"uri"`
+	Name string `json:"name"`
 }
 
 func Create(db *sql.DB) gin.HandlerFunc {
@@ -23,9 +23,8 @@ func Create(db *sql.DB) gin.HandlerFunc {
 			return
 		}
 
-		log.Printf("Creating function in %s", request.Uri)
-		// TODO: Function may exists
-		id, err := models.CreateFunction(db, request.Uri)
+		log.Printf("Creating function in %s", request.Name)
+		id, err := models.CreateFunction(db, request.Name)
 
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
@@ -34,7 +33,7 @@ func Create(db *sql.DB) gin.HandlerFunc {
 			return
 		}
 
-		log.Printf("New function registered at %s with id %d\n", request.Uri, id)
+		log.Printf("Function %s with id %d\n", request.Name, id)
 		c.JSON(http.StatusOK, gin.H{
 			"id": id,
 		})
