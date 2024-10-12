@@ -17,4 +17,4 @@ dev_dependencies:
   test: ^1.24.0
 
 pocket_functions:
-  path: /saraza
+  name: saraza
