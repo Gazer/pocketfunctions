@@ -21,8 +21,16 @@ This documentation is still work-in-progress :)
 
 ```bash
 $> cd server
-$ server> go run main.go
+$ server> go run main.go <api key>
 ```
+
+A good way to create a secure api key is to use SSL:
+
+```bash
+$> openssl rand -hex 32
+```
+
+But any other random string can be used.
 
 Some limitations:
 
@@ -38,6 +46,6 @@ Check [https://github.com/Gazer/exp-pocketfunct-dart](https://github.com/Gazer/e
 
 ## Admin
 
-We have a WorkInProgress admin panel to see some values, just open 
+We have a WorkInProgress admin panel to see some values, just open
 [http://localhost:8080/_/](http://localhost:8080/_/) in your browser.
 
