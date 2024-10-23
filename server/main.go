@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/Gazer/pocketfunctions/handlers"
 )
@@ -10,7 +11,7 @@ import (
 func main() {
 	log.Print("Let's go\n")
 
-	api := handlers.New()
+	api := handlers.New(os.Args[1])
 	api.InitAdminUI()
 
 	fmt.Printf("├─ REST API: http://127.0.0.1:%d/api/\n", 8080)
