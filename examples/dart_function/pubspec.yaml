@@ -18,3 +18,4 @@ dev_dependencies:
 
 pocket_functions:
   name: saraza
+  api_key: 1234
