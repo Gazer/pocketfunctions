@@ -21,18 +21,18 @@ func InitDB() *sql.DB {
 	return db
 }
 
-func CreateFunction(db *sql.DB, name string) (int64, error) {
+func CreateFunction(db *sql.DB, name string, lang string) (int64, error) {
 	function, err := GetFunctionByName(db, name)
 	if err == nil {
 		log.Printf("Function exists with id=%d\n", function.Id)
 		return int64(function.Id), nil
 	}
 
-	statement, err := db.Prepare("INSERT INTO functions (name, docker_id) VALUES (?, ?)")
+	statement, err := db.Prepare("INSERT INTO functions (name, docker_id, lang) VALUES (?, ?, ?)")
 	if err != nil {
 		return -1, err
 	}
-	result, err := statement.Exec(name, "")
+	result, err := statement.Exec(name, "", lang)
 	if err != nil {
 		log.Println(err.Error())
 		return -1, err
@@ -41,11 +41,11 @@ func CreateFunction(db *sql.DB, name string) (int64, error) {
 }
 
 func UpdateFunction(db *sql.DB, function *PocketFunction) error {
-	statement, err := db.Prepare("UPDATE functions SET name=?, docker_id=? WHERE id=?")
+	statement, err := db.Prepare("UPDATE functions SET name=?, docker_id=?, lang=? WHERE id=?")
 	if err != nil {
 		return err
 	}
-	_, err = statement.Exec(function.Name, function.DockerId, function.Id)
+	_, err = statement.Exec(function.Name, function.DockerId, function.Lang, function.Id)
 	return err
 }
 
@@ -67,7 +67,7 @@ func GetFunctionByID(db *sql.DB, id string) (*PocketFunction, error) {
 
 	var function PocketFunction
 	rows.Next()
-	rows.Scan(&function.Id, &function.Name, &function.DockerId)
+	rows.Scan(&function.Id, &function.Name, &function.Lang, &function.DockerId)
 
 	return &function, nil
 }
@@ -79,7 +79,7 @@ func GetFunctionByName(db *sql.DB, name string) (*PocketFunction, error) {
 
 	var function PocketFunction
 	if rows.Next() {
-		rows.Scan(&function.Id, &function.Name, &function.DockerId)
+		rows.Scan(&function.Id, &function.Name, &function.Lang, &function.DockerId)
 
 		return &function, nil
 	}
@@ -266,6 +266,7 @@ func createFunctionsTable(db *sql.DB) {
 	statement, err := db.Prepare(`CREATE TABLE IF NOT EXISTS functions (
 		id INTEGER PRIMARY KEY,
 		name VARCHAR(255),
+		lang VARCHAR(255),
 		docker_id VARCHAR(255)
 	)`)
 	if err != nil {

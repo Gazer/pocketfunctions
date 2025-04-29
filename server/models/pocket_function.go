@@ -6,4 +6,5 @@ type PocketFunction struct {
 	DockerId  string
 	Execution int
 	Average   float64
+	Lang      string
 }

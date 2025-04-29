@@ -11,6 +11,7 @@ import (
 
 type createRequest struct {
 	Name string `json:"name"`
+	Lang string `json:"lang"`
 }
 
 func Create(db *sql.DB) gin.HandlerFunc {
@@ -24,7 +25,7 @@ func Create(db *sql.DB) gin.HandlerFunc {
 		}
 
 		log.Printf("Creating function in %s", request.Name)
-		id, err := models.CreateFunction(db, request.Name)
+		id, err := models.CreateFunction(db, request.Name, request.Lang)
 
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
